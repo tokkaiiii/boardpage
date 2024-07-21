@@ -163,11 +163,12 @@
             "<td class='content__seq'>"+data.seq+"</td>"+
             "<td class='content__title'><a href='/board.do?method=select&seq="+data.seq+"'>"+data.title+"</a></td>"+
             "<td class='content__writer'>"+data.nickname+"</td>"+
-            "<td class='content__date'>"+data.date+"</td>"+
+            "<td class='content__date'>"+data.date+"</td>";
         my_tbody.appendChild(row);
       });
       highlightCurrentPageButton();
     }
+
 
     function setupPagination() {
       const totalPages = Math.ceil(boardData.length / showRowsPerPage);

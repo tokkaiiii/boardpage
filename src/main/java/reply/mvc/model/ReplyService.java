@@ -1,5 +1,6 @@
 package reply.mvc.model;
 
+import java.util.ArrayList;
 import mvc.domain.Reply;
 
 public class ReplyService {
@@ -11,6 +12,10 @@ public class ReplyService {
     dao = new ReplyDAO();
   }
   public static ReplyService getInstance() {return instance;}
+
+  public ArrayList<Reply> listS(){
+    return dao.list();
+  }
 
   public void insertS(Reply reply) {
     dao.insert(reply);

@@ -101,13 +101,8 @@
                     <td>시간</td>
                 </tr>
                 </thead>
-                <tbody>
-                <tr>
-                    <td>1</td>
-                    <td>하이</td>
-                    <td>닉네임</td>
-                    <td>2025.03.01</td>
-                </tr>
+                <tbody class="reply-container">
+
                 </tbody>
             </table>
             <input type="text" name="commentNickname" value="${user.id}" disabled>
@@ -120,19 +115,67 @@
                 <!-- commentList -->
             </div>
             <div id="commentCount">${commentCount}</div>
-            <div id="pageNav">
+            <div class="buttons">
                 <!-- pageNav -->
             </div>
-            <script src="board.js"></script>
-            <script>
-              // board.js
-            </script>
-            <script>
-              // board.js
-            </script>
-
         </form>
     </div>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded',()=>{
+      const reply_tbody = document.querySelector('.reply-container');
+      const buttons = document.querySelector('.buttons');
+      let replyData = [];
+      const showRowsPerPage = 10;
+      let currentPage = 1;
+      //AJAX 요청으로 데이터 가져오기
+
+      fetch('/reply.do?method=list')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        replyData = data;
+        renderReplyTable();
+        setupPaginaition();
+      })
+      .catch(error => console.log('Error: ', error));
+
+      function renderReplyTable(){
+        const startIndex = (currentPage - 1) * showRowsPerPage;
+        const endIndex = startIndex + showRowsPerPage;
+        reply_tbody.innerHTML = '';
+        replyData.slice(startIndex,endIndex).forEach(data=>{
+          const row = document.createElement('tr');
+          row.classList.add('button');
+          row.innerHTML =
+              "<td class='reply__seq'>" + data.seq + "</td>" +
+              "<td class='reply__content'>" + data.content + "</td>" +
+              "<td class='reply__id'>" + data.nickname + "</td>" +
+              "<td class='reply__date'>" + data.date + "</td>";
+
+              reply_tbody.appendChild(row);
+        })
+      }
+
+      function setupPaginaition(){
+        const totalPages = Math.ceil(replyData.length / showRowsPerPage);
+        buttons.innerHTML = '';
+        for(let i =1 ; i<=totalPages ; i++){
+          const button = document.createElement('button');
+          button.classList.add('button');
+          button.textContent = i;
+          button.addEventListener('click',()=>{
+            currentPage = i;
+            renderReplyTable();
+          });
+          buttons.appendChild(button);
+        }
+      }
+    })
+</script>
 </body>
 </html>

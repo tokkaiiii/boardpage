@@ -4,6 +4,7 @@ import static reply.mvc.model.ReplySQL.INSERT;
 import static reply.mvc.model.ReplySQL.SELECT;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -35,14 +36,27 @@ class ReplyDAO {
         ResultSet rs = stmt.executeQuery(SELECT);
     ) {
       ArrayList<Reply> list = new ArrayList<>();
+      Reply reply;
       while (rs.next()) {
-        int id = rs.getInt(1);
-        String text = rs.getString(2);
-
+        System.out.println("하고있음");
+        int seq = rs.getInt(1);
+        String id = rs.getString(2);
+        String nickname = rs.getString(3);
+        String content = rs.getString(4);
+        Date udate = rs.getDate(6);
+        reply = Reply.builder()
+            .seq(seq)
+            .id(id)
+            .nickname(nickname)
+            .content(content)
+            .udate(udate).build();
+        list.add(reply);
       }
+      return list;
     } catch (SQLException e) {
-    }
+      System.out.println("안됨"+e.getMessage());
     return null;
+    }
   }
 
   void insert(Reply reply) {

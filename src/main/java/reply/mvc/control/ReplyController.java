@@ -8,6 +8,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
 import mvc.domain.Reply;
 import mvc.domain.User;
 import reply.mvc.model.ReplyService;
@@ -28,7 +30,31 @@ public class ReplyController extends HttpServlet {
 
   private void list(HttpServletRequest req, HttpServletResponse res)
       throws ServletException, IOException {
-
+    String replyJason;
+    ReplyService service = ReplyService.getInstance();
+    ArrayList<Reply> list = service.listS();
+    //jason 배열 생성
+    if(list.size() > 0) {
+      StringBuilder jasonBuilder = new StringBuilder("[");
+      for(Reply reply : list) {
+        jasonBuilder.append("{")
+            .append("\"seq\":").append(reply.getSeq()).append(",")
+            .append("\"content\":\"").append(reply.getContent()).append("\",")
+            .append("\"nickname\":\"").append(reply.getId()).append("\",")
+            .append("\"date\":\"").append(reply.getUdate()).append("\"")
+            .append("},");
+      }
+      jasonBuilder.setLength(jasonBuilder.length()-1);
+      jasonBuilder.append("]");
+      replyJason = jasonBuilder.toString();
+    }else{
+      replyJason = "[]";
+    }
+    res.setContentType("application/json;charset=UTF-8");
+    res.setCharacterEncoding("UTF-8");
+    PrintWriter out = res.getWriter();
+    out.println(replyJason);
+    out.flush();
   }
   private void insert(HttpServletRequest req, HttpServletResponse res)
     throws ServletException, IOException {
