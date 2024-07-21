@@ -25,6 +25,8 @@ public class ReplyController extends HttpServlet {
         case "list": list(req, res);break;
         case "insert": insert(req,res);break;
       }
+    }else {
+      res.sendRedirect("board/cntDetail.jsp");
     }
   }
 
@@ -32,7 +34,12 @@ public class ReplyController extends HttpServlet {
       throws ServletException, IOException {
     String replyJason;
     ReplyService service = ReplyService.getInstance();
-    ArrayList<Reply> list = service.listS();
+    String seq_=req.getParameter("seq");
+    int board_seq= -1;
+    if (seq_ != null) {
+      board_seq= Integer.parseInt(seq_);
+    }
+    ArrayList<Reply> list = service.listS(board_seq);
     //jason 배열 생성
     if(list.size() > 0) {
       StringBuilder jasonBuilder = new StringBuilder("[");
@@ -75,6 +82,6 @@ public class ReplyController extends HttpServlet {
         .content(commentContent)
         .board_seq(board_seq).build();
     service.insertS(reply);
-    res.sendRedirect("board/cntDetail.jsp");
+    res.sendRedirect("/board.do?method=select&seq="+board_seq);
   }
 }

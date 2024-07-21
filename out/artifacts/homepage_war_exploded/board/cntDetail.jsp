@@ -130,7 +130,7 @@
       let currentPage = 1;
       //AJAX 요청으로 데이터 가져오기
 
-      fetch('/reply.do?method=list')
+      fetch('/reply.do?method=list&seq=${board.seq}')
       .then(response => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);

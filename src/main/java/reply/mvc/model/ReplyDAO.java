@@ -30,32 +30,34 @@ class ReplyDAO {
     }
   }
 
-  ArrayList<Reply> list() {
+  ArrayList<Reply> list(int board_seq) {
     try (Connection conn = dataSource.getConnection();
-        Statement stmt = conn.createStatement();
-        ResultSet rs = stmt.executeQuery(SELECT);
+        PreparedStatement ps = conn.prepareStatement(SELECT);
     ) {
       ArrayList<Reply> list = new ArrayList<>();
+      ps.setInt(1, board_seq);
       Reply reply;
-      while (rs.next()) {
-        System.out.println("하고있음");
-        int seq = rs.getInt(1);
-        String id = rs.getString(2);
-        String nickname = rs.getString(3);
-        String content = rs.getString(4);
-        Date udate = rs.getDate(6);
-        reply = Reply.builder()
-            .seq(seq)
-            .id(id)
-            .nickname(nickname)
-            .content(content)
-            .udate(udate).build();
-        list.add(reply);
+      try (ResultSet rs = ps.executeQuery()) {
+        while (rs.next()) {
+          int seq = rs.getInt(1);
+          String id = rs.getString(2);
+          String nickname = rs.getString(3);
+          String content = rs.getString(4);
+          Date udate = rs.getDate(6);
+          reply = Reply.builder()
+              .seq(seq)
+              .id(id)
+              .nickname(nickname)
+              .content(content)
+              .udate(udate)
+              .board_seq(board_seq).build();
+          list.add(reply);
+        }
       }
       return list;
     } catch (SQLException e) {
-      System.out.println("안됨"+e.getMessage());
-    return null;
+      System.out.println("안됨" + e.getMessage());
+      return null;
     }
   }
 
@@ -63,15 +65,15 @@ class ReplyDAO {
     try (Connection con = dataSource.getConnection();
         PreparedStatement ps = con.prepareStatement(INSERT)
     ) {
-      System.out.println("id: "+reply.getId());
+      System.out.println("id: " + reply.getId());
       ps.setString(1, reply.getId());
-      ps.setString(2,reply.getNickname());
-      ps.setString(3,reply.getContent());
-      ps.setInt(4,reply.getBoard_seq());
+      ps.setString(2, reply.getNickname());
+      ps.setString(3, reply.getContent());
+      ps.setInt(4, reply.getBoard_seq());
       int i = ps.executeUpdate();
-      System.out.println(i+" rows affected");
+      System.out.println(i + " rows affected");
     } catch (SQLException e) {
-      System.out.println("안됨"+e.getMessage());
+      System.out.println("안됨" + e.getMessage());
     }
   }
 }

@@ -11,10 +11,13 @@ public class ReplyService {
   private ReplyService() {
     dao = new ReplyDAO();
   }
-  public static ReplyService getInstance() {return instance;}
 
-  public ArrayList<Reply> listS(){
-    return dao.list();
+  public static ReplyService getInstance() {
+    return instance;
+  }
+
+  public ArrayList<Reply> listS(int board_seq) {
+    return dao.list(board_seq);
   }
 
   public void insertS(Reply reply) {
