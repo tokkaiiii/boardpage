@@ -147,7 +147,10 @@ class BoardDAO {
       ps.setString(1, board.getTitle());
       ps.setString(2, board.getContent());
       ps.setInt(3, board.getSeq());
-      return ps.executeUpdate();
+      System.out.println("seq: "+board.getSeq());
+       int i = ps.executeUpdate();
+      System.out.println(i+"개 업데이트");
+       return i;
     } catch (SQLException se) {
       System.out.println("안됨" + se.getMessage());
       return -1;
@@ -201,12 +204,15 @@ class BoardDAO {
       ps.setInt(1, seq);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
+          String id = rs.getString(2);
           String nickname = rs.getString(3);
           String title = rs.getString(4);
           String content = rs.getString(5);
           String fname = rs.getString(6);
           Date date = rs.getDate(8);
           return Board.builder()
+              .seq(seq)
+              .id(id)
               .nickname(nickname)
               .title(title)
               .content(content)

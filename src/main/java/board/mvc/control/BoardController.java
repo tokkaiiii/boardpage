@@ -50,7 +50,6 @@ public class BoardController extends HttpServlet {
         case "download": download(req,res);break;
       }
     } else {
-      // boards(req, res);
       res.sendRedirect("board/board.jsp");
     }
   }
@@ -194,15 +193,14 @@ public class BoardController extends HttpServlet {
             .seq(seq)
             .title(title)
             .content(content).build();
-//        board = new Board(seq,null,null,title,content, null, null,-1,null, -1);
       }
     }
     if(button.equals("delete")) {
       service.deleteS(board);
-      res.sendRedirect("/board.do");
+      res.sendRedirect("board/board.jsp");
     }else {
       service.updateS(board);
-      res.sendRedirect("/board.do");
+      res.sendRedirect("board/board.jsp");
     }
   }
   private void download(HttpServletRequest req, HttpServletResponse res)

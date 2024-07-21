@@ -30,7 +30,7 @@
     int signupValid = (int) request.getAttribute("signupValid");
     User user = (User) request.getAttribute("user");
     if (signupValid == 1) {
-        session.setAttribute("user", user.getId());
+        session.setAttribute("user", user);
     }
     %>
     alert('로그인 성공');

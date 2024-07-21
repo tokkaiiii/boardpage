@@ -76,15 +76,61 @@
                 </thead>
                 <tbody>
                 <tr><td colspan="6" class="content-container">
-                <textarea class="content-area" name="" id="" cols="30" rows="10" maxlength="2048">
+                <textarea class="content-area" name="content" id="" cols="30" rows="10" maxlength="2048">
                     ${board.content}
                 </textarea>
                 </td></tr>
                 </tbody>
             </table>
+            <c:if test="${board.id == user}">
             <div class="button-container">
-                <button class="button" type="button">수정</button>
+                <button class="button" name="button" type="submit" value="modify">수정</button>
+                <button class="button" name="button" type="submit" value="delete">삭제</button>
             </div>
+            </c:if>
+        </form>
+        <form action="reply.do?method=insert&seq=${board.seq}" method="post">
+            Comment
+            <table>
+                <thead>
+                </tr>
+                <tr>
+                    <td>번호</td>
+                    <td>댓글</td>
+                    <td>작성자</td>
+                    <td>시간</td>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>하이</td>
+                    <td>닉네임</td>
+                    <td>2025.03.01</td>
+                </tr>
+                </tbody>
+            </table>
+            <input type="text" name="commentNickname" value="${user.id}" disabled>
+            <input type="text" name="commentContent" placeholder="댓글">
+            <button name="button" type="submit" value="insert">등록</button>
+            <div class="button-container">
+                <button class="button" type="button" value="delete">삭제</button>
+            </div>
+            <div id="commentList">
+                <!-- commentList -->
+            </div>
+            <div id="commentCount">${commentCount}</div>
+            <div id="pageNav">
+                <!-- pageNav -->
+            </div>
+            <script src="board.js"></script>
+            <script>
+              // board.js
+            </script>
+            <script>
+              // board.js
+            </script>
+
         </form>
     </div>
 </div>

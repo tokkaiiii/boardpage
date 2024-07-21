@@ -13,6 +13,6 @@ public class IndexController extends HttpServlet {
   @Override
   protected void service(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    response.sendRedirect("board.do");
+    response.sendRedirect("index.jsp");
   }
 }
