@@ -30,7 +30,7 @@ public class BoardService {
   }
 
   public ArrayList<Board> boardsS(int pageNumber) {
-    return dao.boards(pageNumber);
+    return dao.boards();
   }
 
   public ArrayList<Board> listS() {
@@ -53,10 +53,6 @@ public class BoardService {
     return dao.delete(board);
   }
 
-  public int seqS() {
-    return dao.seq();
-  }
-
   public String nicknameS(String id) {
     return dao.nickname(id);
   }
@@ -65,9 +61,6 @@ public class BoardService {
     return dao.selectCnt(seq);
   }
 
-  public int totalS() {
-    return dao.total();
-  }
 
   public boolean saveFile(Part filePart) {
     String fileName = filePart.getSubmittedFileName();

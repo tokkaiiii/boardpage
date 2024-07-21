@@ -35,22 +35,22 @@ public class BoardController extends HttpServlet {
     String method = req.getParameter("method");
     if (method != null) {
       switch (method) {
-        case "boards":
-          boards(req, res);
-          break;
-        case "insertDo":
-          insertDo(req, res);
-          break;
-        case "insert":
-          insert(req, res);
-          break;
+        case "boards": boards(req, res);break;
+
+        case "title": title(req,res);break;
+
+        case "write": write(req, res);break;
+
+        case "insert": insert(req, res);break;
+
         case "select": select(req, res);break;
+
         case "update": update(req, res);break;
+
         case "download": download(req,res);break;
-        case "title": title(req, res);break;
       }
     } else {
-//       boards(req, res);
+      // boards(req, res);
       res.sendRedirect("board/board.jsp");
     }
   }
@@ -60,7 +60,6 @@ public class BoardController extends HttpServlet {
     String boardJson;
     BoardService service = BoardService.getInstance();
     ArrayList<Board> list = service.listS();
-
     // JSON 배열 생성
     if (list.size() > 0) {
       StringBuilder jsonBuilder = new StringBuilder("[");
@@ -86,45 +85,53 @@ public class BoardController extends HttpServlet {
     out.print(boardJson);
     out.flush(); // 응답 버퍼를 플러시
   }
-  private void title(HttpServletRequest req, HttpServletResponse res)
-    throws ServletException, IOException {
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonBody ="";
-    try(BufferedReader reader = req.getReader()) {
-      jsonBody = reader.lines().collect(Collectors.joining(System.lineSeparator()));
-    }
-  }
-  private void getJason(ArrayList<Board> list, HttpServletResponse res){
-    StringBuilder jsonBuilder = new StringBuilder("[");
-    for (Board board : list) {
-      jsonBuilder.append("{")
-          .append("\"seq\":\"").append(board.getSeq()).append("\",")
-          .append("\"title\":\"").append(board.getTitle()).append("\",")
-          .append("\"nickname\":\"").append(board.getNickname()).append("\",")
-          .append("\"date\":\"").append(board.getDate()).append("\"},");
-    }
-    if (jsonBuilder.length() > 1) {
-      jsonBuilder.setLength(jsonBuilder.length() - 1); // 마지막 쉼표 제거
-    }
-    jsonBuilder.append("]");
 
-    res.setContentType("application/json; charset=utf-8");
-    res.setCharacterEncoding("UTF-8");
-    try {
-      PrintWriter out = res.getWriter();
-      String json = jsonBuilder.toString();
-      out.print(json);
-      out.flush();
-    } catch (IOException e) {
-      e.printStackTrace();
+  private void title(HttpServletRequest req, HttpServletResponse res)
+      throws ServletException, IOException {
+    String searchField = req.getParameter("searchField");
+    System.out.println("searchField: " + searchField);
+    if (searchField != null) {
+      if (!searchField.equals("")) {
+        String boardJson;
+        BoardService service = BoardService.getInstance();
+        ArrayList<Board> list = service.searchTitleS(searchField);
+        // JSON 배열 생성
+        if (list.size() > 0) {
+          StringBuilder jsonBuilder = new StringBuilder("[");
+          for (Board board : list) {
+            jsonBuilder.append("{")
+                .append("\"seq\":").append(board.getSeq()).append(",")
+                .append("\"title\":\"").append(board.getTitle()).append("\",")
+                .append("\"nickname\":\"").append(board.getNickname()).append("\",")
+                .append("\"date\":\"").append(board.getDate()).append("\"")
+                .append("},");
+          }
+          jsonBuilder.setLength(jsonBuilder.length() - 1); // 마지막 ',' 제거
+          jsonBuilder.append("]");
+          boardJson = jsonBuilder.toString();
+        } else {
+          boardJson = "[]"; // 비어있는 배열
+        }
+        // 응답 설정
+        res.setContentType("application/json; charset=utf-8"); // 수정: ':' -> ';'
+        res.setCharacterEncoding("UTF-8");
+        PrintWriter out = res.getWriter();
+        out.print(boardJson);
+        out.flush(); // 응답 버퍼를 플러시
+      }else {
+        res.sendRedirect("/board.do?method=boards");
+      }
+    }else {
+      res.sendRedirect("/board.do?method=boards");
     }
+
   }
-  private void insertDo(HttpServletRequest req, HttpServletResponse res)
+
+  private void write(HttpServletRequest req, HttpServletResponse res)
       throws ServletException, IOException {
     HttpSession session = req.getSession();
     User user = (User) session.getAttribute("user");
     res.sendRedirect("board/insert.jsp");
-
   }
 
   private void insert(HttpServletRequest req, HttpServletResponse res)
@@ -134,7 +141,7 @@ public class BoardController extends HttpServlet {
     String content = req.getParameter("content");
     Part filePart = req.getPart("file");
     String fileName = null;
-    if(filePart != null) {
+    if (filePart != null) {
       if (!filePart.getSubmittedFileName().isEmpty()) {
         fileName = filePart.getSubmittedFileName();
         service.saveFile(filePart);
@@ -143,28 +150,38 @@ public class BoardController extends HttpServlet {
     HttpSession session = req.getSession();
     User user = (User) session.getAttribute("user");
     String id = user.getId();
-    Board board = new Board(service.seqS(), id,service.nicknameS(id), title, content, fileName, null,
-        null, 1);
+    Board board = Board.builder()
+        .id(id)
+        .nickname(service.nicknameS(id))
+        .title(title)
+        .content(content)
+        .fname(fileName)
+        .build();
     service.insertS(board);
     res.sendRedirect("/board.do");
   }
 
+  //게시글 상세보기
   private void select(HttpServletRequest req, HttpServletResponse res)
       throws ServletException, IOException {
     String seq_ = req.getParameter("seq");
     BoardService service = BoardService.getInstance();
     Board board = null;
+    int view =0;
     if (seq_ != null) {
       if (!seq_.isEmpty()) {
         int seq = Integer.parseInt(seq_);
         board = service.selectCntS(seq);
       }
     }
+    req.setAttribute("view", view);
     req.setAttribute("board", board);
     req.getRequestDispatcher("board/cntDetail.jsp").forward(req, res);
   }
+
   private void update(HttpServletRequest req, HttpServletResponse res)
       throws ServletException, IOException {
+    String button = req.getParameter("button");
     BoardService service = BoardService.getInstance();
     String seq_ = req.getParameter("seq");
     String title = req.getParameter("title");
@@ -173,11 +190,20 @@ public class BoardController extends HttpServlet {
     if (seq_ != null) {
       if (!seq_.isEmpty()) {
         int seq = Integer.parseInt(seq_);
-        board = new Board(seq,null,null,title,content, null, null,null, -1);
+        board = Board.builder()
+            .seq(seq)
+            .title(title)
+            .content(content).build();
+//        board = new Board(seq,null,null,title,content, null, null,-1,null, -1);
       }
     }
-    service.updateS(board);
-    res.sendRedirect("/board.do");
+    if(button.equals("delete")) {
+      service.deleteS(board);
+      res.sendRedirect("/board.do");
+    }else {
+      service.updateS(board);
+      res.sendRedirect("/board.do");
+    }
   }
   private void download(HttpServletRequest req, HttpServletResponse res)
       throws ServletException, IOException {

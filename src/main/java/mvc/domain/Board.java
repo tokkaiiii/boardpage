@@ -3,15 +3,16 @@ package mvc.domain;
 import java.sql.Date;
 
 public class Board {
-  private int seq;
-  private String id;
-  private String nickname;
-  private String title;
-  private String content;
-  private String fname;
-  private String ofname;
-  private Date date;
-  private int valid;
+
+  private final int seq;
+  private final String id;
+  private final String nickname;
+  private final String title;
+  private final String content;
+  private final String fname;
+  private final String ofname;
+  private final Date date;
+  private final int valid;
 
 
   public Board(int seq, String id, String nickname, String title, String content, String fname,
@@ -26,81 +27,120 @@ public class Board {
     this.date = date;
     this.valid = valid;
   }
+
   public int getSeq() {
     return seq;
-  }
-
-  public void setSeq(int seq) {
-    this.seq = seq;
   }
 
   public String getId() {
     return id;
   }
 
-  public void setId(String id) {
-    this.id = id;
-  }
-
   public String getNickname() {
     return nickname;
-  }
-
-  public void setNickname(String nickname) {
-    this.nickname = nickname;
   }
 
   public String getTitle() {
     return title;
   }
 
-  public void setTitle(String title) {
-    this.title = title;
-  }
-
   public String getContent() {
     return content;
-  }
-
-  public void setContent(String content) {
-    this.content = content;
   }
 
   public String getFname() {
     return fname;
   }
 
-  public void setFname(String fname) {
-    this.fname = fname;
-  }
-
   public String getOfname() {
     return ofname;
-  }
-
-  public void setOfname(String ofname) {
-    this.ofname = ofname;
   }
 
   public Date getDate() {
     return date;
   }
 
-  public void setDate(Date date) {
-    this.date = date;
-  }
-
   public int getValid() {
     return valid;
   }
 
-  public void setValid(int valid) {
-    this.valid = valid;
+  public static BoardBuilder builder() {
+    return new BoardBuilder();
   }
 
+  public static class BoardBuilder {
 
-  public Board() {
+    private int seq;
+    private String id;
+    private String nickname;
+    private String title;
+    private String content;
+    private String fname;
+    private String ofname;
+    private Date date;
+    private int valid;
+
+    public BoardBuilder seq(int seq) {
+      this.seq = seq;
+      return this;
+    }
+
+    public BoardBuilder id(String id) {
+      this.id = id;
+      return this;
+    }
+
+    public BoardBuilder nickname(String nickname) {
+      this.nickname = nickname;
+      return this;
+    }
+
+    public BoardBuilder title(String title) {
+      this.title = title;
+      return this;
+    }
+
+    public BoardBuilder content(String content) {
+      this.content = content;
+      return this;
+    }
+
+    public BoardBuilder fname(String fname) {
+      this.fname = fname;
+      return this;
+    }
+
+    public BoardBuilder ofname(String ofname) {
+      this.ofname = ofname;
+      return this;
+    }
+
+    public BoardBuilder date(Date date) {
+      this.date = date;
+      return this;
+    }
+
+    public BoardBuilder valid(int valid) {
+      this.valid = valid;
+      return this;
+    }
+    public Board build() {
+      return new Board(this.seq,this.id,this.nickname,this.title,this.content,this.fname,this.ofname,this.date,this.valid);
+    }
   }
 
-
+  @Override
+  public String toString() {
+    return "Board{" +
+        "seq=" + seq +
+        ", id='" + id + '\'' +
+        ", nickname='" + nickname + '\'' +
+        ", title='" + title + '\'' +
+        ", content='" + content + '\'' +
+        ", fname='" + fname + '\'' +
+        ", ofname='" + ofname + '\'' +
+        ", date=" + date +
+        ", valid=" + valid +
+        '}';
+  }
 }

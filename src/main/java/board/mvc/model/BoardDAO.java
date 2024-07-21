@@ -5,7 +5,6 @@ import static board.mvc.model.BoardSQL.INSERT;
 import static board.mvc.model.BoardSQL.LIST;
 import static board.mvc.model.BoardSQL.NICKNAME;
 import static board.mvc.model.BoardSQL.SEARCHCONTENT;
-import static board.mvc.model.BoardSQL.SEARCHNICKNAME;
 import static board.mvc.model.BoardSQL.SEARCHTITLE;
 import static board.mvc.model.BoardSQL.SELECT;
 import static board.mvc.model.BoardSQL.SELECTCNT;
@@ -29,6 +28,7 @@ import mvc.domain.Board;
 
 class BoardDAO {
 
+
   DataSource dataSource;
 
   BoardDAO() {
@@ -42,24 +42,25 @@ class BoardDAO {
   }
 
   // BoardDAO.java
-  ArrayList<Board> boards(int pageNumber) {
+  ArrayList<Board> boards() {
     ArrayList<Board> boards = new ArrayList<>();
     try (Connection con = dataSource.getConnection();
-        PreparedStatement ps = con.prepareStatement(LIST)
+        Statement stmt = con.createStatement();
+        ResultSet rs = stmt.executeQuery(LIST)
     ) {
-      // (pageNumber - 1) * 10 + 1: 쿼리에서 시작할 SEQ 값을 지정
-      ps.setInt(1, seq() - (pageNumber - 1) * 10);
-      try (ResultSet rs = ps.executeQuery()) {
-        while (rs.next()) {
-          int seq = rs.getInt("seq");
-          String nickname = rs.getString("nickname");
-          String title = rs.getString("title");
-          Date date = rs.getDate("date");
-          Board board = new Board(seq, null, nickname, title, null, null, null, date, -1);
-          boards.add(board);
-        }
-        return boards;
+      while (rs.next()) {
+        int seq = rs.getInt(1);
+        String nickname = rs.getString(3);
+        String title = rs.getString(4);
+        Date date = rs.getDate(8);
+        Board board = Board.builder()
+            .seq(seq)
+            .nickname(nickname)
+            .title(title)
+            .date(date).build();
+        boards.add(board);
       }
+      return boards;
     } catch (SQLException e) {
       System.out.println("안됨" + e.getMessage());
       return null;
@@ -73,16 +74,17 @@ class BoardDAO {
         ResultSet rs = stmt.executeQuery(TOTALLIST)
     ) {
       while (rs.next()) {
-        int seq = rs.getInt("seq");
-        String id = rs.getString("id");
-        String nickname = rs.getString("nickname");
-        String title = rs.getString("title");
-        String content = rs.getString("content");
-        String fname = rs.getString("fname");
-        String ofname = rs.getString("ofname");
-        Date date = rs.getDate("date");
-        int valid = rs.getInt("valid");
-        Board board = new Board(seq, id, nickname, title, content, fname, ofname, date, valid);
+        int seq = rs.getInt(1);
+        String nickname = rs.getString(3);
+        String title = rs.getString(4);
+        String content = rs.getString(5);
+        Date date = rs.getDate(8);
+        Board board = Board.builder()
+            .seq(seq)
+            .nickname(nickname)
+            .title(title)
+            .content(content)
+            .date(date).build();
         list.add(board);
       }
       return list;
@@ -92,31 +94,45 @@ class BoardDAO {
     }
   }
 
-  int seq() {
+  ArrayList<Board> searchTitle(String title) {
+    ArrayList<Board> list = new ArrayList<>();
     try (Connection con = dataSource.getConnection();
-        Statement stmt = con.createStatement();
-        ResultSet rs = stmt.executeQuery(SEQ)
+        PreparedStatement ps = con.prepareStatement(SEARCHTITLE)
     ) {
-      if (rs.next()) {
-        return rs.getInt("seq") + 1;
+      ps.setString(1, "%"+title+"%");
+      try (ResultSet rs = ps.executeQuery()) {
+        while (rs.next()) {
+          int seq = rs.getInt(1);
+          String nickname = rs.getString(3);
+          String dbTitle = rs.getString(4);
+          String content = rs.getString(5);
+          Date date = rs.getDate(8);
+          Board board = Board.builder()
+              .seq(seq)
+              .nickname(nickname)
+              .title(dbTitle)
+              .content(content)
+              .date(date).build();
+          list.add(board);
+        }
       }
-    } catch (SQLException se) {
-      return -1;
+      return list;
+    } catch (SQLException e) {
+      System.out.println("안됨" + e.getMessage());
+      return null;
     }
-    return 1;
   }
 
   int insert(Board board) {
     try (Connection con = dataSource.getConnection();
         PreparedStatement ps = con.prepareStatement(INSERT)
     ) {
-      ps.setInt(1, seq());
-      ps.setString(2, board.getId());
-      ps.setString(3, board.getNickname());
-      ps.setString(4, board.getTitle());
-      ps.setString(5, board.getContent());
-      ps.setString(6, board.getFname());
-      ps.setString(7, null);
+      ps.setString(1, board.getId());
+      ps.setString(2, board.getNickname());
+      ps.setString(3, board.getTitle());
+      ps.setString(4, board.getContent());
+      ps.setString(5, board.getFname());
+      ps.setString(6, null);
       return ps.executeUpdate();
     } catch (SQLException se) {
       System.out.println("안됨" + se.getMessage());
@@ -167,7 +183,7 @@ class BoardDAO {
       ps.setString(1, id);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
-          return rs.getString("nickname");
+          return rs.getString(3);
         } else {
           return null;
         }
@@ -190,8 +206,12 @@ class BoardDAO {
           String content = rs.getString(5);
           String fname = rs.getString(6);
           Date date = rs.getDate(8);
-          Board board = new Board(seq, null, nickname, title, content, fname, null, date, -1);
-          return board;
+          return Board.builder()
+              .nickname(nickname)
+              .title(title)
+              .content(content)
+              .fname(fname)
+              .date(date).build();
         }
       }
     } catch (SQLException se) {
@@ -211,82 +231,63 @@ class BoardDAO {
     }
     return 0;
   }
+
   ArrayList<Board> searchContent(String content) {
-    try(Connection con = dataSource.getConnection();
-    PreparedStatement ps = con.prepareStatement(SEARCHCONTENT)
+    try (Connection con = dataSource.getConnection();
+        PreparedStatement ps = con.prepareStatement(SEARCHCONTENT)
     ) {
-      ps.setString(1, "%"+ content +"%");
+      ps.setString(1, "%" + content + "%");
       ArrayList<Board> list = new ArrayList<>();
       Board board = null;
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
-          int seq = rs.getInt("seq");
-          String nickname = rs.getString("nickname");
-          String title = rs.getString("title");
-          String dbContent = rs.getString("content");
-          String fname = rs.getString("fname");
-          Date date = rs.getDate("date");
-          int valid = rs.getInt("valid");
-          board = new Board(seq,null,nickname,title,dbContent,fname,null,date,valid);
+          int seq = rs.getInt(1);
+          String nickname = rs.getString(3);
+          String title = rs.getString(4);
+          String dbContent = rs.getString(5);
+          Date date = rs.getDate(8);
+          board = Board.builder()
+              .seq(seq)
+              .nickname(nickname)
+              .title(title)
+              .content(dbContent)
+              .date(date).build();
           list.add(board);
         }
         return list;
       }
-    }catch (SQLException se) {
+    } catch (SQLException se) {
       return null;
     }
   }
+
   ArrayList<Board> searchNickname(String nickname) {
-    try(Connection con = dataSource.getConnection();
-    PreparedStatement ps = con.prepareStatement(SEARCHCONTENT)
+    try (Connection con = dataSource.getConnection();
+        PreparedStatement ps = con.prepareStatement(SEARCHCONTENT)
     ) {
-      ps.setString(1, "%"+ nickname +"%");
+      ps.setString(1, "%" + nickname + "%");
       ArrayList<Board> list = new ArrayList<>();
       Board board = null;
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
-          int seq = rs.getInt("seq");
-          String dbNickname = rs.getString("nickname");
-          String title = rs.getString("title");
-          String dbContent = rs.getString("content");
-          String fname = rs.getString("fname");
-          Date date = rs.getDate("date");
-          int valid = rs.getInt("valid");
-          board = new Board(seq,null,dbNickname,title,dbContent,fname,null,date,valid);
+          int seq = rs.getInt(1);
+          String dbNickname = rs.getString(3);
+          String title = rs.getString(4);
+          String dbContent = rs.getString(5);
+          Date date = rs.getDate(8);
+          board = Board.builder()
+              .seq(seq)
+              .nickname(dbNickname)
+              .title(title)
+              .content(dbContent)
+              .date(date).build();
           list.add(board);
         }
         return list;
       }
-    }catch (SQLException se) {
+    } catch (SQLException se) {
       return null;
     }
 
   }
-  ArrayList<Board> searchTitle(String title) {
-    try(Connection con = dataSource.getConnection();
-    PreparedStatement ps = con.prepareStatement(SEARCHCONTENT)
-    ) {
-      ps.setString(1, "%"+ title +"%");
-      ArrayList<Board> list = new ArrayList<>();
-      Board board = null;
-      try (ResultSet rs = ps.executeQuery()) {
-        while (rs.next()) {
-          int seq = rs.getInt("seq");
-          String nickname = rs.getString("nickname");
-          String dbTitle = rs.getString("title");
-          String dbContent = rs.getString("content");
-          String fname = rs.getString("fname");
-          Date date = rs.getDate("date");
-          int valid = rs.getInt("valid");
-          board = new Board(seq,null,nickname,title,dbContent,fname,null,date,valid);
-          list.add(board);
-        }
-        return list;
-      }
-    }catch (SQLException se) {
-      return null;
-    }
-
-  }
-
 }

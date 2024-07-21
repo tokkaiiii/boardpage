@@ -15,5 +15,4 @@ public class IndexController extends HttpServlet {
       throws ServletException, IOException {
     response.sendRedirect("board.do");
   }
-
 }

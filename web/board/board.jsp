@@ -1,10 +1,10 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <style>
       * {
@@ -12,25 +12,21 @@
         margin: 0;
         padding: 0;
       }
-
       .pagination .active {
         font-weight: bold;
       }
-
       .buttons {
         position: relative;
         padding: 1rem 0;
         display: inline-flex;
         justify-content: center;
       }
-
       .button.active,
       .button:hover {
         color: #1f975d;
         font-weight: 600;
         text-decoration: underline;
       }
-
       body {
         width: 100vw;
         height: 100vh;
@@ -39,40 +35,59 @@
         align-items: center;
         justify-content: center;
       }
-
       #board-table {
         width: 800px;
         border-collapse: collapse;
       }
-
       .content {
+
         padding: 0.3em 0;
+
         border-bottom: 1px solid rgba(0, 0, 0, 0.08);
       }
-
       .content__seq,
       .content__writer,
-      .content__title,
       .content__date,
-      .content__see {
-        flex-basis: 15%;
+      .content__view{
+        width: 15%;
       }
-
-      th {
+      .content__title {
+        flex: 1;
+        text-align: left;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .content__title:hover{
+        color: #1f975d;
+        font-weight: 600;
+        text-decoration: underline;
+      }
+      th{
         text-align: left;
       }
+      a{
+        text-decoration: none;
+        color:black;
+      }
     </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 </head>
 <body>
+<c:if test="${empty user}">
+    <script>
+      alert('회원가입 해주세요')
+      location.href='/index.jsp';
+    </script>
+</c:if>
 <nav>
-    <select id="select">
+    <select id="search-select">
         <option value="title">title</option>
         <option value="content">content</option>
         <option value="nickname">nickname</option>
     </select>
-    <input id="search-field" name="search-field" size="50">
-
-    <input type="button" id="search-button" name="search" value="search">
+    <input id="search-field" type="text">
+    <input id="search-button" type="button">
 </nav>
 <div class="container">
     <table id="board-table">
@@ -90,7 +105,11 @@
     </table>
 </div>
 <div class="buttons"></div>
-
+<div class="writeContainer">
+    <form action="/board.do?method=write" method="post">
+        <button type="submit">글쓰기</button>
+    </form>
+</div>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const my_tbody = document.querySelector('tbody');
@@ -114,6 +133,25 @@
     })
     .catch(error => console.error('Error:', error));
 
+    let select = document.getElementById('search-select');
+    let selectIndex = select.selectedIndex;
+    let selectValue = select.options[selectIndex].innerText;
+    $(()=>{
+      $('#search-field').on('keyup',()=>{
+        $.ajax({
+          url:'/board.do?method='+selectValue,
+          type:'POST',
+          data:{searchField:$('#search-field').val()},
+          success:(data)=>{
+            boardData = data;
+            currentPage = 1;
+            renderTable();
+            setupPagination();
+          }
+        })
+      })
+    });
+
     function renderTable() {
       const startIndex = (currentPage - 1) * showRowsPerPage;
       const endIndex = startIndex + showRowsPerPage;
@@ -122,10 +160,10 @@
         const row = document.createElement('tr');
         row.classList.add('content');
         row.innerHTML =
-            "<td>" + data.seq + "</td>" +
-            "<td><a href='/board.do?method=insertDo&seq=" + data.seq + "'>" + data.title + "</a></td>" +
-            "<td>" + data.nickname + "</td>" +
-            "<td>" + data.date + "</td>";
+            "<td class='content__seq'>"+data.seq+"</td>"+
+            "<td class='content__title'><a href='/board.do?method=select&seq="+data.seq+"'>"+data.title+"</a></td>"+
+            "<td class='content__writer'>"+data.nickname+"</td>"+
+            "<td class='content__date'>"+data.date+"</td>"+
         my_tbody.appendChild(row);
       });
       highlightCurrentPageButton();
@@ -155,32 +193,8 @@
       });
     }
   });
-
-  const searchData = document.getElementById('search-field').value;
-  const data = {search:'searchData'};
-  document.getElementById('search-field').addEventListener('keyup',()=>{
-    let select_value = document.getElementById('select').value;
-    fetch('/board.do?method='+select_value,{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json'
-      },
-      body:JSON.stringify(data)
-    })
-    .then(response=>{
-      if(!response.ok){
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      return response.json();
-    })
-    .then(reponseData=>{
-      alert('Response:',reponseData)
-    })
-    .catch(error=>{
-      alert('Error:',error)
-    })
-  })
-
 </script>
+
+
 </body>
 </html>
