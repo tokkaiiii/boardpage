@@ -25,7 +25,7 @@
 <body>
 <div class="container">
     <div class="row">
-        <form action="../board.do?method=insert" method="post">
+        <form action="/board.do?method=insert" method="post" enctype="multipart/form-data">
             <table class="table table-striped"
                    style="text-align: center; border: 1px solid #dddddd">
                 <thead>
@@ -37,8 +37,12 @@
                 <tr>
                     <td><input type="text" class="form-control" placeholder="제목" name="title"
                                maxlength="50"></td>
-
                 </tr>
+                <tr>
+                    <td><input type="file" class="form-control"  name="file"
+                               ></td>
+                </tr>
+
                 <tr>
                     <td><textarea type="text" class="form-control" placeholder="내용" name="content"
                                   maxlength="2048" style="height:350px"></textarea></td>

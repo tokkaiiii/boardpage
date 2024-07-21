@@ -117,6 +117,9 @@
     let boardData = [];
     const showRowsPerPage = 10;
     let currentPage = 1;
+    const showPerButton = 5;
+    let startButton = currentPage - (currentPage - 1) % showPerButton;
+
 
     // AJAX 요청으로 데이터 가져오기
     fetch('/board.do?method=boards') // 서블릿 URL
@@ -172,9 +175,11 @@
 
     function setupPagination() {
       const totalPages = Math.ceil(boardData.length / showRowsPerPage);
+      let lastButton = startButton+showPerButton-1;
+      let endButton = lastButton < totalPages ? lastButton : totalPages;
       paginationContainer.innerHTML = ''; // 기존 버튼 제거
 
-      for (let i = 1; i <= totalPages; i++) {
+      for (let i = startButton; i <= endButton; i++) {
         const pageButton = document.createElement('button');
         pageButton.classList.add('button');
         pageButton.textContent = i;

@@ -183,10 +183,11 @@ class BoardDAO {
     try (Connection con = dataSource.getConnection();
         PreparedStatement ps = con.prepareStatement(NICKNAME)
     ) {
+      System.out.println(id);
       ps.setString(1, id);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
-          return rs.getString(3);
+          return rs.getString(1);
         } else {
           return null;
         }
